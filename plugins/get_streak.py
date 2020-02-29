@@ -6,7 +6,8 @@ import requests
 from slackbot.bot import respond_to
 import requests
 
-user_name = ["matsugen1234", "I4n", "wakimiko", "tourist"]
+# ストリークが知りたいユーザのID
+user_name = ["matsugen1234", "I4n", "wakimiko"]
 
 @respond_to('streak')
 def show_streak(message):
@@ -20,11 +21,12 @@ def show_streak(message):
         # 今の時間
         now = datetime.datetime.fromtimestamp(time.time(), datetime.timezone(datetime.timedelta(hours=9)))
 
+        today = now
+
 
         accepted = set()
-        today_accepted = []
+        day_accepted = []
         streak_len = 0
-        out_count = 0
 
         while True: 
             for submit in res:
@@ -42,23 +44,18 @@ def show_streak(message):
                 
                 # 今日解いた && 今までに解いたこと無いなら新規リストに追加
                 if submittime.date() == now.date() and problemid not in accepted:
-                    today_accepted.append(submit)
+                    day_accepted.append(submit)
 
             # リストに要素がある（初めて解いた問題がある)ならストリーク+1
-            if len(today_accepted) != 0:
+            if len(day_accepted) != 0:
                 streak_len += 1
-                now = now - datetime.timedelta(days=1)
-                today_accepted = []
-                accepted = set()
+            elif now.date() == today.date():
+                pass
             else :
-                out_count += 1
-                now = now - datetime.timedelta(days=1)
-                today_accepted = []
-                accepted = set()
-
-            # 今日まだ解いていない場合があるので、2回空いたらアウトにする。
-            # ここいらないかも
-            if out_count > 1:
                 break
+
+            now = now - datetime.timedelta(days=1)
+            day_accepted = []
+            accepted = set()
 
         message.send(user_name[x] + "さんのstreak数は現在 " + str(streak_len) + "です")
